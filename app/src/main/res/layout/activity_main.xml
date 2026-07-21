@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="false"
     android:background="#000000">
 
     <ImageView
@@ -16,7 +17,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- طبقة تعتيم خفيفة عشان الأيقونات تبين فوق أي خلفية -->
     <View
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -30,9 +30,8 @@
         android:id="@+id/searchBox"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="64dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginHorizontal="16dp"
         android:background="#55000000"
         android:hint="بحث..."
         android:textColorHint="#CCCCCC"
@@ -41,18 +40,7 @@
         android:focusable="false"
         android:cursorVisible="false"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <ImageButton
-        android:id="@+id/drawerButton"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_marginTop="24dp"
-        android:layout_marginEnd="16dp"
-        android:background="#55000000"
-        android:src="@android:drawable/ic_menu_view"
-        android:contentDescription="@null"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
     <androidx.recyclerview.widget.RecyclerView
@@ -68,11 +56,30 @@
 
     <TextView
         android:id="@+id/pageIndicator"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="20dp"
+        android:layout_marginBottom="14dp"
+        android:layout_marginHorizontal="24dp"
+        android:gravity="center"
         android:textColor="#EEEEEE"
-        android:textSize="14sp"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- مناطق شفافة رفيعة بأعلى وأسفل الشاشة تلتقط إيماءات السحب -->
+    <View
+        android:id="@+id/topGestureZone"
+        android:layout_width="0dp"
+        android:layout_height="14dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <View
+        android:id="@+id/bottomGestureZone"
+        android:layout_width="0dp"
+        android:layout_height="28dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />

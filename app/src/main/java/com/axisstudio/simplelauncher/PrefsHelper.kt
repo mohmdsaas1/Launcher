@@ -22,9 +22,9 @@ object PrefsHelper {
     private fun prefs(context: Context) =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-    // ---- نمط العرض ----
+    // ---- نمط العرض (الافتراضي الحين: شبكة ثابتة) ----
     fun getLayoutMode(context: Context): String =
-        prefs(context).getString(KEY_LAYOUT_MODE, MODE_TABS) ?: MODE_TABS
+        prefs(context).getString(KEY_LAYOUT_MODE, MODE_FIXED_GRID) ?: MODE_FIXED_GRID
 
     fun setLayoutMode(context: Context, mode: String) {
         prefs(context).edit().putString(KEY_LAYOUT_MODE, mode).apply()
@@ -66,7 +66,7 @@ object PrefsHelper {
         prefs(context).edit().putBoolean(KEY_SHOW_LABELS, show).apply()
     }
 
-    // ---- تجميع حسب الفئة ----
+    // ---- التجميع حسب الفئة ----
     fun getGroupByCategory(context: Context): Boolean =
         prefs(context).getBoolean(KEY_GROUP_BY_CATEGORY, false)
 
@@ -74,7 +74,7 @@ object PrefsHelper {
         prefs(context).edit().putBoolean(KEY_GROUP_BY_CATEGORY, enabled).apply()
     }
 
-    // ---- التطبيقات المثبتة (Pin) ----
+    // ---- التطبيقات المثبتة ----
     fun getPinnedApps(context: Context): MutableSet<String> =
         HashSet(prefs(context).getStringSet(KEY_PINNED_APPS, emptySet()) ?: emptySet())
 
@@ -84,7 +84,7 @@ object PrefsHelper {
         prefs(context).edit().putStringSet(KEY_PINNED_APPS, current).apply()
     }
 
-    // ---- التطبيقات المستبعدة من الترتيب التلقائي ----
+    // ---- المستبعدة من الترتيب ----
     fun getExcludedApps(context: Context): MutableSet<String> =
         HashSet(prefs(context).getStringSet(KEY_EXCLUDED_APPS, emptySet()) ?: emptySet())
 
@@ -105,7 +105,6 @@ object PrefsHelper {
         prefs(context).edit().putStringSet(KEY_FROZEN_SECTIONS, current).apply()
     }
 
-    // محتوى القسم المجمّد (قائمة أسماء حزم مفصولة بفاصلة) — يحفظ آخر حالة معروفة للقسم المجمّد
     fun saveFrozenSectionContent(context: Context, index: Int, packageNames: List<String>) {
         prefs(context).edit()
             .putString(KEY_FROZEN_SECTION_PREFIX + index, packageNames.joinToString(","))

@@ -3,21 +3,21 @@ package com.axisstudio.simplelauncher
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
+import android.view.MotionEvent
 import android.view.View
-import android.view.WindowInsets
-import android.view.WindowInsetsController
 import android.widget.EditText
-import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
 import androidx.recyclerview.widget.RecyclerView
+import kotlin.math.abs
 
 class MainActivity : AppCompatActivity() {
 
@@ -25,8 +25,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var sectionsView: RecyclerView
     private lateinit var pageIndicator: TextView
     private lateinit var searchBox: EditText
-    private lateinit var drawerButton: ImageButton
     private val sectionCount = 8
+
+    private var gestureStartY = 0f
+    private val swipeThresholdPx by lazy { 60 * resources.displayMetrics.density }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,18 +39,9 @@ class MainActivity : AppCompatActivity() {
         sectionsView = findViewById(R.id.sectionsView)
         pageIndicator = findViewById(R.id.pageIndicator)
         searchBox = findViewById(R.id.searchBox)
-        drawerButton = findViewById(R.id.drawerButton)
 
         applyWallpaper()
-
-        sectionsView.setOnLongClickListener {
-            startActivity(Intent(this, SettingsActivity::class.java))
-            true
-        }
-
-        drawerButton.setOnClickListener {
-            startActivity(Intent(this, AppDrawerActivity::class.java))
-        }
+        setupGestureZones()
 
         searchBox.setOnClickListener {
             startActivity(Intent(this, AppDrawerActivity::class.java))
@@ -60,7 +53,7 @@ class MainActivity : AppCompatActivity() {
                 "لازم تفعّل صلاحية الوصول للاستخدام عشان يرتب تطبيقاتك تلقائيًا",
                 Toast.LENGTH_LONG
             ).show()
-            startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
+            startActivity(Intent(android.provider.Settings.ACTION_USAGE_ACCESS_SETTINGS))
         } else {
             loadApps()
         }
@@ -81,23 +74,41 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun goFullscreen() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            window.setDecorFitsSystemWindows(false)
-            window.insetsController?.let { controller ->
-                controller.hide(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
-                controller.systemBarsBehavior =
-                    WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        val controller = WindowInsetsControllerCompat(window, window.decorView)
+        controller.hide(WindowInsetsCompat.Type.systemBars())
+        controller.systemBarsBehavior =
+            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+    }
+
+    // منطقتين رفيعتين بأعلى وأسفل الشاشة: سحب لتحت من فوق = إعدادات، سحب لفوق من تحت = درج التطبيقات
+    @Suppress("ClickableViewAccessibility")
+    private fun setupGestureZones() {
+        val topZone = findViewById<View>(R.id.topGestureZone)
+        val bottomZone = findViewById<View>(R.id.bottomGestureZone)
+
+        topZone.setOnTouchListener { _, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> gestureStartY = event.rawY
+                MotionEvent.ACTION_UP -> {
+                    if (event.rawY - gestureStartY > swipeThresholdPx) {
+                        startActivity(Intent(this, SettingsActivity::class.java))
+                    }
+                }
             }
-        } else {
-            @Suppress("DEPRECATION")
-            window.decorView.systemUiVisibility = (
-                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                    or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                    or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                    or View.SYSTEM_UI_FLAG_FULLSCREEN
-                )
+            true
+        }
+
+        bottomZone.setOnTouchListener { _, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> gestureStartY = event.rawY
+                MotionEvent.ACTION_UP -> {
+                    if (gestureStartY - event.rawY > swipeThresholdPx) {
+                        startActivity(Intent(this, AppDrawerActivity::class.java))
+                    }
+                }
+            }
+            true
         }
     }
 
@@ -129,6 +140,7 @@ class MainActivity : AppCompatActivity() {
 
         val adapter = SectionCardAdapter(
             sections,
+            mode,
             onAppClick = { app -> launchApp(app) },
             onAppChanged = { loadApps() },
             onFreezeToggle = { index ->
@@ -141,7 +153,7 @@ class MainActivity : AppCompatActivity() {
 
         if (mode == PrefsHelper.MODE_FIXED_GRID) {
             sectionsView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
-            pageIndicator.text = "عرض: شبكة ثابتة"
+            pageIndicator.text = "اسحب من فوق = إعدادات · من تحت = كل التطبيقات"
         } else {
             sectionsView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
             PagerSnapHelper().attachToRecyclerView(sectionsView)

@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 
 class SectionCardAdapter(
     private val sections: List<List<AppEntry>>,
+    private val layoutMode: String,
     private val onAppClick: (AppEntry) -> Unit,
     private val onAppChanged: (() -> Unit)?,
     private val onFreezeToggle: (Int) -> Unit
@@ -30,6 +31,15 @@ class SectionCardAdapter(
         val context = holder.itemView.context
         val apps = sections[position]
         val columns = PrefsHelper.getColumnCount(context)
+
+        // بالتبويبات: كل قسم بطاقة تملأ الشاشة كاملة. بالشبكة الثابتة: كل قسم ياخذ بس المساحة اللي يحتاجها
+        val params = holder.itemView.layoutParams
+        if (layoutMode == PrefsHelper.MODE_TABS) {
+            params.height = RecyclerView.LayoutParams.MATCH_PARENT
+        } else {
+            params.height = RecyclerView.LayoutParams.WRAP_CONTENT
+        }
+        holder.itemView.layoutParams = params
 
         holder.innerGrid.layoutManager = GridLayoutManager(context, columns)
         holder.innerGrid.adapter = AppGridAdapter(apps, onAppClick, onAppChanged)
